@@ -1,1 +1,171 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PaperStack</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f9f9f8;color:#111;min-height:100vh;padding:2rem 1rem}
+.wrap{max-width:700px;margin:0 auto}
+h1{font-size:26px;font-weight:700;letter-spacing:-.5px;margin-bottom:4px}
+.sub{font-size:14px;color:#666;margin-bottom:2rem}
+.card{background:#fff;border:1px solid #e5e5e3;border-radius:12px;padding:1.5rem;margin-bottom:1rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+label{display:block;font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+select,input{width:100%;padding:9px 11px;border-radius:8px;border:1px solid #e0e0de;background:#fff;color:#111;font-size:14px;font-family:inherit;outline:none}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:1.25rem}
+.chip{padding:6px 14px;border-radius:20px;font-size:13px;cursor:pointer;border:1.5px solid #e0e0de;background:#fff;color:#666;transition:all .15s;user-select:none}
+.chip.on{border-color:#111;background:#111;color:#fff}
+.btn{width:100%;padding:11px;border-radius:8px;border:none;background:#111;color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.btn:hover{opacity:.85}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.err{font-size:13px;color:#dc2626;margin-bottom:10px;display:none}
+.status{display:none;align-items:center;gap:10px;padding:12px 14px;background:#eff6ff;border-radius:8px;margin-bottom:1rem;font-size:13px;color:#1d4ed8}
+.status.show{display:flex}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:#3b82f6;animation:bop 1.2s infinite;margin-right:3px}
+.dots span:nth-child(2){animation-delay:.2s}
+.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bop{0%,80%,100%{transform:translateY(0)}40%{transform:translateY(-5px)}}
+.rhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px}
+.rhead h2{font-size:15px;font-weight:600}
+.dl-all{padding:7px 14px;border-radius:8px;border:1.5px solid #111;background:#111;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.dl-all:hover{opacity:.85}
+.rlist{display:flex;flex-direction:column;gap:7px}
+.ritem{background:#fff;border:1px solid #e5e5e3;border-radius:8px;padding:11px 14px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;animation:up .2s ease}
+@keyframes up{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.rmeta{flex:1;min-width:0}
+.rtitle{font-size:13px;font-weight:500;margin-bottom:4px;line-height:1.4}
+.rtag{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px}
+.tag-paper{background:#eff6ff;color:#1d4ed8}
+.tag-mark{background:#f0fdf4;color:#15803d}
+.tag-report{background:#fffbeb;color:#b45309}
+.tag-spec{background:#f5f3ff;color:#7c3aed}
+.dbtn{flex-shrink:0;padding:7px 13px;border-radius:7px;border:1px solid #e0e0de;background:#fff;color:#111;font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;transition:all .15s}
+.dbtn:hover{background:#111;color:#fff;border-color:#111}
+.dbtn.done{color:#15803d;border-color:#15803d}
+.dbtn.fail{color:#dc2626;border-color:#dc2626}
+.empty{text-align:center;padding:2rem;color:#999;font-size:14px;background:#fff;border:1px solid #e5e5e3;border-radius:8px}
+@media(max-width:500px){.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>PaperStack</h1>
+  <p class="sub">Download past papers, mark schemes, examiner reports and specs — free, no login.</p>
+  <div class="card">
+    <div class="grid2">
+      <div>
+        <label>Exam board</label>
+        <select id="board">
+          <option value="">Select...</option>
+          <option value="AQA">AQA</option>
+          <option value="Edexcel">Edexcel</option>
+          <option value="OCR">OCR</option>
+        </select>
+      </div>
+      <div>
+        <label>Level</label>
+        <select id="level">
+          <option value="">Select...</option>
+          <option value="gcse">GCSE</option>
+          <option value="alevel">A-Level</option>
+          <option value="aslevel">AS-Level</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label>Subject</label>
+      <input type="text" id="subject" placeholder="e.g. Biology, Maths, History..."/>
+    </div>
+    <label style="margin-bottom:8px">Resource types</label>
+    <div class="chips">
+      <span class="chip on" data-t="paper">Past papers</span>
+      <span class="chip on" data-t="mark">Mark schemes</span>
+      <span class="chip on" data-t="report">Examiner reports</span>
+      <span class="chip on" data-t="spec">Specifications</span>
+    </div>
+    <p class="err" id="err"></p>
+    <button class="btn" id="btn" onclick="go()">Find papers</button>
+  </div>
+  <div class="status" id="status">
+    <div class="dots"><span></span><span></span><span></span></div>
+    <span id="smsg">Searching...</span>
+  </div>
+  <div id="out" style="display:none">
+    <div class="rhead">
+      <h2 id="rtitle"></h2>
+      <button class="dl-all" onclick="downloadAll()">Download all</button>
+    </div>
+    <div class="rlist" id="rlist"></div>
+  </div>
+</div>
+<script>
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>c.classList.toggle('on'));
+document.getElementById('subject').addEventListener('keydown',e=>{if(e.key==='Enter')go();});
+let currentPapers=[];
+const tagClass=t=>({paper:'tag-paper',mark:'tag-mark',report:'tag-report',spec:'tag-spec'}[t]||'tag-paper');
+const tagLabel=t=>({paper:'Past paper',mark:'Mark scheme',report:'Examiner report',spec:'Specification'}[t]||t);
+function setStatus(msg,show=true){document.getElementById('smsg').textContent=msg;document.getElementById('status').classList.toggle('show',show);}
+function showErr(msg){const e=document.getElementById('err');e.textContent=msg;e.style.display=msg?'block':'none';}
+async function doDownload(url,title,btn){
+  btn.textContent='...';btn.disabled=true;
+  try{
+    const res=await fetch(`/api/download?url=${encodeURIComponent(url)}&title=${encodeURIComponent(title)}`);
+    if(!res.ok)throw new Error();
+    const blob=await res.blob();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download=title.replace(/\s+/g,'_')+'.pdf';
+    a.click();URL.revokeObjectURL(a.href);
+    btn.textContent='Done ✓';btn.classList.add('done');
+  }catch{btn.textContent='Failed';btn.classList.add('fail');}
+  finally{btn.disabled=false;setTimeout(()=>{btn.textContent='Download';btn.classList.remove('done','fail');},3000);}
+}
+async function downloadAll(){
+  for(const p of currentPapers){
+    const btn=document.querySelector(`[data-url="${p.urls[0]}"]`);
+    if(btn)await doDownload(p.urls[0],p.title,btn);
+    await new Promise(r=>setTimeout(r,600));
+  }
+}
+function addCard(p){
+  const div=document.createElement('div');div.className='ritem';
+  div.innerHTML=`<div class="rmeta"><div class="rtitle">${p.title}</div><span class="rtag ${tagClass(p.type)}">${tagLabel(p.type)}</span></div><button class="dbtn" data-url="${p.urls[0]}">Download</button>`;
+  div.querySelector('.dbtn').onclick=function(){doDownload(p.urls[0],p.title,this);};
+  document.getElementById('rlist').appendChild(div);
+}
+async function go(){
+  const board=document.getElementById('board').value;
+  const level=document.getElementById('level').value;
+  const subject=document.getElementById('subject').value.trim();
+  const types=[...document.querySelectorAll('.chip.on')].map(c=>c.dataset.t);
+  showErr('');
+  if(!board)return showErr('Please select an exam board.');
+  if(!level)return showErr('Please select a level.');
+  if(!subject)return showErr('Please enter a subject.');
+  if(!types.length)return showErr('Select at least one resource type.');
+  const btn=document.getElementById('btn');
+  btn.disabled=true;
+  document.getElementById('out').style.display='none';
+  document.getElementById('rlist').innerHTML='';
+  currentPapers=[];
+  setStatus('Finding papers...');
+  try{
+    const res=await fetch('/api/papers',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({board,level,subject,types})});
+    const data=await res.json();
+    setStatus('',false);
+    document.getElementById('rtitle').textContent=`${board} ${level.toUpperCase()} ${subject}`;
+    document.getElementById('out').style.display='block';
+    if(!data.papers||data.papers.length===0){
+      document.getElementById('rlist').innerHTML='<div class="empty">No papers found for this combination yet. More subjects being added regularly.</div>';
+    }else{
+      currentPapers=data.papers;
+      data.papers.forEach(addCard);
+    }
+  }catch{setStatus('',false);showErr('Something went wrong. Please try again.');}
+  finally{btn.disabled=false;}
+}
+</script>
+</body>
+</html>
